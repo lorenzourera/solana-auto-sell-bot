@@ -69,7 +69,13 @@ def get_assets_by_owner(RPC_URL, wallet_address):
 
 
 def write_wallet_tokens(tokens):
+    
+
+    # clear wallet_tokens.json if no SPL tokens are detected
     if not tokens:
+        with open("data/wallet_tokens.json", "w") as file:
+            file.write("[]")
+        logger.info("Wallet tokens JSON file cleared")
         return
     
     current_time = int(time.time())
