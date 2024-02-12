@@ -164,9 +164,11 @@ def main():
         old_tokens = detect_old_tokens("data/wallet_tokens.json", threshold_seconds)
         for token in old_tokens:
             logger.info(f"Detected old token: {token}. Selling now.")
-            raydium_swap(ctx=ctx, payer=payer, desired_token_address=token['token_id'])
-            remove_token_from_json(token_id=token['token_id'])
-            
+            try:
+                raydium_swap(ctx=ctx, payer=payer, desired_token_address=token['token_id'])
+                remove_token_from_json(token_id=token['token_id'])
+            except Exception as e:
+                logger.warning(f"Issue encountered during sell {e}")    
 
         # Pause for some time before the next iteration
         time.sleep(1)  # 1 second
