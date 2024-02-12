@@ -169,7 +169,7 @@ def main():
             
 
         # Pause for some time before the next iteration
-        time.sleep(1)  # 1 minute
+        time.sleep(1)  # 1 second
 
 if __name__ == "__main__":
     main()

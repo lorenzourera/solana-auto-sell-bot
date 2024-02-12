@@ -1,5 +1,5 @@
 from raydium.sell_swap import sell
-from birdeye import get_price, getSymbol
+from dexscreener import get_price, getSymbol
 import time
 from loguru import logger
 
