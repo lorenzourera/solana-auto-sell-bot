@@ -1,0 +1,5 @@
+venv/
+config.ini
+__pycache__/
+all_pools.json
+.DS_Store
