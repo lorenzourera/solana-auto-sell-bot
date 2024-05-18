@@ -15,3 +15,8 @@ This script `auto_sell.py` continously scans a solana wallet for new tokens. Upo
 2. Create a virtual environment (`python -m venv venv`), activate it (`source venv/bin/activate`) and install all dependencies found in `requirements.txt` (`pip install -r requirements.txt`)
 3. Create a new file in `data/` called `config.ini`. The contents of this file should be identical to `config_template.ini` but with the values.
 4. Run the script: `python auto_sell.py`
+
+
+
+# Contacts
+For business inquiries or custom scripts reach me on telegram at `zo125`
