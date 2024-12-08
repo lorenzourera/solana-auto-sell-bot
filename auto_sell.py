@@ -11,7 +11,7 @@ import sys
 from configparser import ConfigParser
 import base58, logging,time, re, os,sys, json
 from raydium.Raydium import *
-from pumpfun.pump_fun import sell
+from pumpfun.pump_fun import pf_sell
 
 
 def get_assets_by_owner(RPC_URL, wallet_address):
@@ -174,8 +174,8 @@ def main():
             try:
                 if token['token_id'].endswith('pump'):
                     logger.info("Selling on pumpfun")
-                    sell(client=ctx, )
-
+                    pf_sell(client=ctx, payer_keypair=payer)
+                    remove_token_from_json(token_id=token['token_id'])
                 else:
                     raydium_swap(ctx=ctx, payer=payer, desired_token_address=token['token_id'])
                     remove_token_from_json(token_id=token['token_id'])

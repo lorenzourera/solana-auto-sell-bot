@@ -1,4 +1,4 @@
-from pumpfun.pump_fun import pf_sell
+from pumpfun.pump_fun import pf_buy
 from configparser import ConfigParser
 import os, sys
 from solana.rpc.api import Client
@@ -15,7 +15,7 @@ client = Client(RPC_HTTPS_URL, commitment=Commitment("confirmed"), timeout=30,bl
 
 # Sell Example
 mint_str = "CU64vmX5MBTXBu85HmswbGdDbwfHredQQZgLoEZxCAkJ"
-percentage = 100
+sol_in = 0.0025
 slippage = 25
 
-pf_sell(client=client, payer_keypair=payer_keypair, mint_str=mint_str, percentage=percentage, slippage=slippage)
+pf_buy(client=client, payer_keypair=payer_keypair, mint_str=mint_str, slippage=slippage)

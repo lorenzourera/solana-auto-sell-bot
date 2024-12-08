@@ -6,6 +6,7 @@ from solana.transaction import Signature
 from solders.pubkey import Pubkey  # type: ignore
 from pumpfun.coin_data import get_coin_data
 import time
+from loguru import logger 
 # from configparser import ConfigParser
 # import os, sys
 
@@ -18,20 +19,24 @@ import time
 def get_token_balance(client, payer_keypair, mint_str: str) -> float | None:
     try:
         mint = Pubkey.from_string(mint_str)
+        # for debugging
+        logger.info(f'mint {mint}')
+        logger.info(f'payer pubkey {payer_keypair.pubkey()}')
         response = client.get_token_accounts_by_owner_json_parsed(
             payer_keypair.pubkey(),
             TokenAccountOpts(mint=mint),
             commitment=Processed
         )
-        time.sleep(10)
+        logger.info(f'response {response}')
         accounts = response.value
+        logger.info(f'accounts {accounts}')
         if accounts:
             token_amount = accounts[0].account.data.parsed['info']['tokenAmount']['uiAmount']
             return float(token_amount)
 
         
     except Exception as e:
-        print(f"Error fetching token balance: {e}")
+        logger.error(f"Error fetching token balance: {e}")
         return None
 
 def confirm_txn(client, txn_sig: Signature, max_retries: int = 20, retry_interval: int = 3) -> bool:

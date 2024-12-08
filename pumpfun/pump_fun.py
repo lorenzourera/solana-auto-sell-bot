@@ -7,6 +7,7 @@ from spl.token.instructions import (
     create_associated_token_account,
     get_associated_token_address,
 )
+from solana.rpc.api import RPCException
 from solders.compute_budget import set_compute_unit_limit, set_compute_unit_price  # type: ignore
 from solders.instruction import Instruction  # type: ignore
 from solders.message import MessageV0  # type: ignore
@@ -15,6 +16,7 @@ from solders.pubkey import Pubkey
 from pumpfun.utils import confirm_txn, get_token_balance
 from pumpfun.coin_data import get_coin_data
 from loguru import logger
+import time
 
 
 GLOBAL = Pubkey.from_string("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf")
@@ -219,16 +221,64 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
         )
 
         logger.info("Sending transaction...")
-        txn_sig = client.send_transaction(
-            txn=VersionedTransaction(compiled_message, [payer_keypair]),
-            opts=TxOpts(skip_preflight=True)
-        ).value
+
+        try: 
+            start_time = time.time()
+            txn_sig = client.send_transaction(
+                txn=VersionedTransaction(compiled_message, [payer_keypair]),
+                opts=TxOpts(skip_preflight=True)
+            ).value
+
+            ## from solana tradingbot
+            # checkTxn = True 
+            # while checkTxn:
+            #         try:
+            #             status = client.get_transaction(txn_sig,"json")
+            #             FeesUsed = (status.value.transaction.meta.fee) / 1000000000
+            #             if status.value.transaction.meta.err == None:
+            #                 logger.info("[create_account] Transaction Success",txn_sig.value)
+            #                 logger.info(f"[create_account] Transaction Fees: {FeesUsed:.10f} SOL")
+
+            #                 end_time = time.time()
+            #                 execution_time = end_time - start_time
+            #                 logger.info(f"Execution time: {execution_time} seconds")
+
+            #                 txnBool = False
+            #                 checkTxn = False
+            #                 return txn_sig
+            #             else:
+            #                 logger.info("Transaction Failed")
+
+            #                 end_time = time.time()
+            #                 execution_time = end_time - start_time
+            #                 logger.info(f"Execution time: {execution_time} seconds")
+            #                 checkTxn = False
+            #         except Exception as e:
+            #                     logger.info(f"sell error {mint_str}",f"{e}")
+
+            #                     logger.info("Sleeping...",e)
+            #                     time.sleep(1)
+            #                     logger.info("Retrying...")
+        except RPCException as e:
+            logger.info(f"Error: [{e.args[0].message}]...\nRetrying...")
+            logger.info(f"sell error {mint_str} ",f" {e.args[0].message}")
+
+        except Exception as e:
+            logger.info(f"Error: [{e}]...\nEnd...")
+            logger.info(f"sell error  {mint_str}",f": {e.args[0].message}")
+            txnBool = False
+            return "failed"
+
+
+
         logger.info(f"Transaction Signature: {txn_sig}")
 
         logger.info("Confirming transaction...")
         confirmed = confirm_txn(txn_sig)
-        
+        end_time = time.time()
+        execution_time = end_time - start_time
         logger.info(f"Transaction confirmed: {confirmed}")
+        logger.info(f"Execution time {execution_time}")
         return confirmed
 
     except Exception as e:
