@@ -168,6 +168,12 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
 
         logger.info("Retrieving token balance...")
         token_balance = get_token_balance(client, payer_keypair, mint_str)
+        
+        ## Edgecase: token balance is mixed number (i.e. 1.5), then sell the whole number part (1)
+        if token_balance % 1 != 0 and token_balance > 1: # is a mixed number
+            token_balance = int(token_balance)
+
+    
         logger.info(f"token_balance {token_balance}")
         if token_balance == 0:
             logger.info("Token balance is zero. Nothing to sell.")
