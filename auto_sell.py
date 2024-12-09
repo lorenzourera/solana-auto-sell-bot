@@ -176,7 +176,7 @@ def main():
             try:
                 if token['token_id'].endswith('pump'):
                     logger.info("Selling on pumpfun")
-                    pf_sell(client=ctx, mint_str=token, payer_keypair=payer, percentage=percentage, slippage=slippage)
+                    pf_sell(client=ctx, mint_str=str(token['token_id']), payer_keypair=payer, percentage=percentage, slippage=slippage)
                     remove_token_from_json(token_id=token['token_id'])
                 else:
                     raydium_swap(ctx=ctx, payer=payer, desired_token_address=token['token_id'])
