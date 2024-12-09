@@ -14,7 +14,7 @@ payer_keypair = Keypair.from_base58_string(payer_keypair)
 client = Client(RPC_HTTPS_URL, commitment=Commitment("confirmed"), timeout=30,blockhash_cache=True)
 
 # Sell Example
-mint_str = "CU64vmX5MBTXBu85HmswbGdDbwfHredQQZgLoEZxCAkJ"
+mint_str = "5syFBzELxeG4TvjBAt5Koq9BKTJeF1jJ679RYy2wpump"
 percentage = 100
 slippage = 25
 

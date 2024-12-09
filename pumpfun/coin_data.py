@@ -37,12 +37,15 @@ def get_virtual_reserves(client, bonding_curve: Pubkey):
 
 def derive_bonding_curve_accounts(mint_str: str):
     try:
+        logger.info(f"Deriving bonding curve for {mint_str}")
         mint = Pubkey.from_string(mint_str)
+        logger.info(f'mint {mint}')
         bonding_curve, _ = Pubkey.find_program_address(
             ["bonding-curve".encode(), bytes(mint)],
             PUMP_FUN_PROGRAM
         )
         associated_bonding_curve = get_associated_token_address(bonding_curve, mint)
+        logger.info(f"associated bonding curve {associated_bonding_curve}")
         return bonding_curve, associated_bonding_curve
     except Exception as e:
         logger.error(f'PF - error occured in deriving bonding curve account - {e}')

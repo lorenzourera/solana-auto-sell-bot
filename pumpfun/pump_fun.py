@@ -17,7 +17,7 @@ from pumpfun.utils import confirm_txn, get_token_balance
 from pumpfun.coin_data import get_coin_data
 from loguru import logger
 import time
-
+from raydium.Raydium import raydium_swap
 
 GLOBAL = Pubkey.from_string("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf")
 FEE_RECIPIENT = Pubkey.from_string("CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM")
@@ -48,6 +48,9 @@ def pf_buy(client, payer_keypair, mint_str: str, sol_in: float = 0.01, slippage:
 
         if coin_data.complete:
             logger.warning("Warning: This token has bonded and is only tradable on Raydium.")
+            logger.info('Initiating swap on raydium')
+            raydium_swap(ctx=client, payer=payer_keypair, desired_token_address=mint_str)
+
             return
 
         MINT = coin_data.mint
@@ -120,7 +123,7 @@ def pf_buy(client, payer_keypair, mint_str: str, sol_in: float = 0.01, slippage:
         logger.info(f"Transaction Signature: {txn_sig}")
 
         logger.info("Confirming transaction...")
-        confirmed = confirm_txn(txn_sig)
+        confirmed = confirm_txn(client=client, txn_sig=txn_sig)
         
         logger.info(f"Transaction confirmed: {confirmed}")
         return confirmed
@@ -144,7 +147,9 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
             return False
 
         if coin_data.complete:
-            logger.info("Warning: This token has bonded and is only tradable on Raydium.")
+            logger.info("Warning: This token has bonded and is only tradable on Raydium.")            
+            logger.info('Initiating swap on raydium')
+            raydium_swap(ctx=client, payer=payer_keypair, desired_token_address=mint_str)
             return
 
         MINT = coin_data.mint
@@ -228,37 +233,6 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
                 txn=VersionedTransaction(compiled_message, [payer_keypair]),
                 opts=TxOpts(skip_preflight=True)
             ).value
-
-            ## from solana tradingbot
-            # checkTxn = True 
-            # while checkTxn:
-            #         try:
-            #             status = client.get_transaction(txn_sig,"json")
-            #             FeesUsed = (status.value.transaction.meta.fee) / 1000000000
-            #             if status.value.transaction.meta.err == None:
-            #                 logger.info("[create_account] Transaction Success",txn_sig.value)
-            #                 logger.info(f"[create_account] Transaction Fees: {FeesUsed:.10f} SOL")
-
-            #                 end_time = time.time()
-            #                 execution_time = end_time - start_time
-            #                 logger.info(f"Execution time: {execution_time} seconds")
-
-            #                 txnBool = False
-            #                 checkTxn = False
-            #                 return txn_sig
-            #             else:
-            #                 logger.info("Transaction Failed")
-
-            #                 end_time = time.time()
-            #                 execution_time = end_time - start_time
-            #                 logger.info(f"Execution time: {execution_time} seconds")
-            #                 checkTxn = False
-            #         except Exception as e:
-            #                     logger.info(f"sell error {mint_str}",f"{e}")
-
-            #                     logger.info("Sleeping...",e)
-            #                     time.sleep(1)
-            #                     logger.info("Retrying...")
         except RPCException as e:
             logger.info(f"Error: [{e.args[0].message}]...\nRetrying...")
             logger.info(f"sell error {mint_str} ",f" {e.args[0].message}")
@@ -274,7 +248,7 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
         logger.info(f"Transaction Signature: {txn_sig}")
 
         logger.info("Confirming transaction...")
-        confirmed = confirm_txn(txn_sig)
+        confirmed = confirm_txn(client=client,txn_sig=txn_sig)
         end_time = time.time()
         execution_time = end_time - start_time
         logger.info(f"Transaction confirmed: {confirmed}")

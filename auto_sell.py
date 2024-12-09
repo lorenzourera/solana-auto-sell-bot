@@ -158,6 +158,8 @@ def main():
     private_key = config.get("DEFAULT", "PRIVATE_KEY")
     # Time to Hold
     threshold_seconds = int(config.get("DEFAULT", "X_SECONDS"))
+    percentage = float(config.get("DEFAULT", "PERCENT_TO_SELL"))
+    slippage = float(config.get('DEFAULT', "SLIPPAGE"))
     
     ctx = Client(RPC_HTTPS_URL, commitment=Commitment("confirmed"), timeout=30,blockhash_cache=True)
     payer = Keypair.from_bytes(base58.b58decode(private_key))
@@ -174,13 +176,15 @@ def main():
             try:
                 if token['token_id'].endswith('pump'):
                     logger.info("Selling on pumpfun")
-                    pf_sell(client=ctx, payer_keypair=payer)
+                    pf_sell(client=ctx, mint_str=token, payer_keypair=payer, percentage=percentage, slippage=slippage)
                     remove_token_from_json(token_id=token['token_id'])
                 else:
                     raydium_swap(ctx=ctx, payer=payer, desired_token_address=token['token_id'])
                     remove_token_from_json(token_id=token['token_id'])
             except Exception as e:
-                logger.warning(f"Issue encountered during sell {e}")    
+                logger.warning(f"Issue encountered during sell of {token} Message {e}")
+                time.sleep(0.5)
+                continue    
 
         # Pause for some time before the next iteration
         time.sleep(1)  # 1 second
