@@ -40,8 +40,8 @@ def get_token_balance(client, payer_keypair, mint_str: str) -> float | None:
         logger.error(f"Error fetching token balance: {e}")
         return None
 
-def confirm_txn(client, txn_sig: Signature, max_retries: int = 20, retry_interval: int = 5) -> bool:
-    retries = 10
+def confirm_txn(client, txn_sig: Signature, max_retries: int = 20, retry_interval: int = 3) -> bool:
+    retries = 1
     
     while retries < max_retries:
         try:
