@@ -72,5 +72,5 @@ def get_coin_data(client, mint_str: str) -> Optional[CoinData]:
             complete=bool(virtual_reserves.complete),
         )
     except Exception as e:
-        print(e)
+        logger.error(e)
         return None
