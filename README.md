@@ -8,6 +8,9 @@ This script `auto_sell.py` continously scans a solana wallet for new tokens. Upo
 2. PRIVATE_KEY - Private Key for the wallet (to allow selling)
 3. SOLANA_RPC_URL - RPC URL / I used helius for development
 4. X_SECONDS - Amount in seconds between token detection and initiating the sell swap.
+5. SLIPPAGE - Allowable slippage
+6. PERCENT_TO_SELL 
+
 
 
 # How to use
@@ -20,3 +23,6 @@ This script `auto_sell.py` continously scans a solana wallet for new tokens. Upo
 
 # Contacts
 For business inquiries or custom scripts reach me on telegram at `zo125`
+
+If this script has helped you, tips are much appreciated:
+* Solana `4AJbAQVSPd8pZkcox67ouYjQHqnQsHkxxuj5cY4rCwK1`
