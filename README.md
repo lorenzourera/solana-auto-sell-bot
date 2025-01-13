@@ -2,6 +2,9 @@
 
 This script `auto_sell.py` continously scans a solana wallet for new tokens. Upon detection, it will cache this token along with a few details (`token_address`, `balance`, `detection_time`) in `data\wallet_tokens.json`. When the token is older than a certain time duration it will sell the token.
 
+Note: This implementation is very old, there are many areas for improvement and enhancements in terms of functionality or performance. If you have other needs, you may contact me by referring to my details in the last section.
+
+
 # Configs/Parameters
 
 1. WALLET_ADDRESS - Wallet Address to be tracked (only one at a time)
