@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from construct import Flag, Int64ul, Padding, Struct
+from construct import Flag, Int64ul, Padding, Struct, Bytes
 from solders.pubkey import Pubkey  # type: ignore
 from spl.token.instructions import get_associated_token_address
 from pumpfun.constants import PUMP_FUN_PROGRAM
@@ -15,6 +15,7 @@ class CoinData:
     virtual_sol_reserves: int
     token_total_supply: int
     complete: bool
+    creator: Pubkey
 
 def get_virtual_reserves(client, bonding_curve: Pubkey):
     bonding_curve_struct = Struct(
@@ -24,7 +25,8 @@ def get_virtual_reserves(client, bonding_curve: Pubkey):
         "realTokenReserves" / Int64ul,
         "realSolReserves" / Int64ul,
         "tokenTotalSupply" / Int64ul,
-        "complete" / Flag
+        "complete" / Flag,
+        "creator" / Bytes(32),
     )
     
     try:
@@ -60,7 +62,7 @@ def get_coin_data(client, mint_str: str) -> Optional[CoinData]:
     virtual_reserves = get_virtual_reserves(client, bonding_curve)
     if virtual_reserves is None:
         return None
-
+    
     try:
         return CoinData(
             mint=Pubkey.from_string(mint_str),
@@ -70,6 +72,7 @@ def get_coin_data(client, mint_str: str) -> Optional[CoinData]:
             virtual_sol_reserves=int(virtual_reserves.virtualSolReserves),
             token_total_supply=int(virtual_reserves.tokenTotalSupply),
             complete=bool(virtual_reserves.complete),
+            creator=Pubkey.from_bytes(virtual_reserves.creator)
         )
     except Exception as e:
         logger.error(e)

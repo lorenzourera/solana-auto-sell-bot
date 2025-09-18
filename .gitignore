@@ -4,3 +4,4 @@ __pycache__/
 all_pools.json
 .DS_Store
 .python-version
+test.py

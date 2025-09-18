@@ -27,11 +27,17 @@ ASSOC_TOKEN_ACC_PROG = Pubkey.from_string("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNs
 RENT = Pubkey.from_string("SysvarRent111111111111111111111111111111111")
 EVENT_AUTHORITY = Pubkey.from_string("Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1")
 PUMP_FUN_PROGRAM = Pubkey.from_string("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
+PUMP_FUN_FEE_PROGRAM = Pubkey.from_string("pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ")
+PUMP_FUN_FEE_CONFIG = Pubkey.from_string("8Wf5TiAheLUqBrKXeYg2JtAFFMWtKdG2BSFgqUcPVwTt")
 SOL_DECIMAL = 10**9
 UNIT_BUDGET = 100_000
 UNIT_PRICE = 1_000_000
 
-
+def derive_creator_vault(creator: Pubkey) -> Pubkey:
+    creator_vault, _ = Pubkey.find_program_address(
+        [b"creator-vault", bytes(creator)], PUMP_FUN_PROGRAM
+    )
+    return creator_vault
 
 
 
@@ -51,7 +57,7 @@ def pf_buy(client, payer_keypair, mint_str: str, sol_in: float = 0.01, slippage:
             logger.info('Initiating swap on raydium')
             raydium_swap(ctx=client, payer=payer_keypair, desired_token_address=mint_str)
 
-            return
+            return False
 
         MINT = coin_data.mint
         BONDING_CURVE = coin_data.bonding_curve
@@ -157,7 +163,8 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
         ASSOCIATED_BONDING_CURVE = coin_data.associated_bonding_curve
         USER = payer_keypair.pubkey()
         ASSOCIATED_USER = get_associated_token_address(USER, MINT)
-
+        CREATOR = coin_data.creator
+        CREATOR_VAULT = derive_creator_vault(CREATOR)
         logger.info("Calculating token price...")
         sol_decimal = 10**9
         token_decimal = 10**6
@@ -200,10 +207,14 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
             AccountMeta(pubkey=ASSOCIATED_USER, is_signer=False, is_writable=True),
             AccountMeta(pubkey=USER, is_signer=True, is_writable=True),
             AccountMeta(pubkey=SYSTEM_PROGRAM, is_signer=False, is_writable=False),
-            AccountMeta(pubkey=ASSOC_TOKEN_ACC_PROG, is_signer=False, is_writable=False),
+            # CREATOR VAULT
+            AccountMeta(pubkey=CREATOR_VAULT, is_signer=False, is_writable=True),
+            # AccountMeta(pubkey=ASSOC_TOKEN_ACC_PROG, is_signer=False, is_writable=False),
             AccountMeta(pubkey=TOKEN_PROGRAM, is_signer=False, is_writable=False),
             AccountMeta(pubkey=EVENT_AUTHORITY, is_signer=False, is_writable=False),
-            AccountMeta(pubkey=PUMP_FUN_PROGRAM, is_signer=False, is_writable=False)
+            AccountMeta(pubkey=PUMP_FUN_PROGRAM, is_signer=False, is_writable=False),
+            AccountMeta(pubkey=PUMP_FUN_FEE_CONFIG, is_signer=False, is_writable=False),
+            AccountMeta(pubkey=PUMP_FUN_FEE_PROGRAM, is_signer=False, is_writable=False),
         ]
 
         data = bytearray()
@@ -218,10 +229,10 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
             swap_instruction,
         ]
 
-        if percentage == 100:
-            logger.info("Preparing to close token account after swap...")
-            close_account_instruction = close_account(CloseAccountParams(TOKEN_PROGRAM, ASSOCIATED_USER, USER, USER))
-            instructions.append(close_account_instruction)
+        # if percentage == 100:
+        #     logger.info("Preparing to close token account after swap...")
+        #     close_account_instruction = close_account(CloseAccountParams(TOKEN_PROGRAM, ASSOCIATED_USER, USER, USER))
+        #     instructions.append(close_account_instruction)
 
         logger.info("Compiling transaction message...")
         compiled_message = MessageV0.try_compile(
@@ -237,7 +248,7 @@ def pf_sell(client, payer_keypair, mint_str: str, percentage: int = 100, slippag
             start_time = time.time()
             txn_sig = client.send_transaction(
                 txn=VersionedTransaction(compiled_message, [payer_keypair]),
-                opts=TxOpts(skip_preflight=True)
+                opts=TxOpts(skip_preflight=False)
             ).value
         except RPCException as e:
             logger.info(f"Error: [{e.args[0].message}]...\nRetrying...")
